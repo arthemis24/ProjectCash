@@ -1,0 +1,95 @@
+- model: core.country
+  pk: 56ec6d04b37b3379b7446c01
+  fields:
+    name: Cameroon
+    iso2: CM
+    iso3: CMR
+
+- model: core.country
+  pk: 56ec6d04b37b3379b7446c02
+  fields:
+    name: Nigeria
+    iso2: NG
+    iso3: NGR
+
+- model: core.application
+  pk: 56eb6d04b37b3379b531a001
+  fields:
+    name: Kakocase
+    slug: kakocase
+    logo: app_logos/kakocase_logo.png
+    url: ''
+    base_monthly_cost: 5000
+
+- model: core.application
+  pk: 56eb6d04b37b3379b531a002
+  fields:
+    name: Kakocase Logistics
+    slug: kakocase-logistics
+    logo: app_logos/kakocase_logo.png
+    url: ''
+    base_monthly_cost: 5000
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b101
+  fields:
+    member: 56eb6d04b37b3379b531e011
+    app: 56eb6d04b37b3379b531a001
+    project_name: tecnomobile
+    project_name_slug: tecnomobile
+    domain: tecnomobile.ikwen.com
+    url: http://tecnomobile.ikwen.com
+    database: test_kc_tecnomobile
+    api_signature: api-signature1
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b102
+  fields:
+    member: 56eb6d04b37b3379b531e012
+    app: 56eb6d04b37b3379b531a001
+    project_name: sabc
+    project_name_slug: sabc
+    domain: sabc.ikwen.com
+    url: http://sabc.ikwen.com
+    database: test_kc_sabc
+    api_signature: api-signature2
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.service
+  pk: 56eb6d04b37b3379b531b103
+  fields:
+    member: 56eb6d04b37b3379b531e013
+    app: 56eb6d04b37b3379b531a001
+    project_name: foka
+    project_name_slug: foka
+    domain: foka.ikwen.com
+    url: http://foka.ikwen.com
+    database: test_kc_foka
+    api_signature: api-signature3
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z
+
+- model: core.service
+  pk: 59dfa80a7a9aeb0f8990e727
+  fields:
+    member: 56eb6d04b37b3379b531e015
+    app: 56eb6d04b37b3379b531a002
+    project_name: ems
+    project_name_slug: ems
+    domain: creolink.ikwen.com
+    url: http://creolink.ikwen.com
+    database: test_kc_ems
+    api_signature: api-signature5
+    monthly_cost: 6000
+    version: Full
+    status: Active
+    expiry: 2035-01-01T00:00:00.120Z

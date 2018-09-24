@@ -1,0 +1,115 @@
+{% extends "core/base_bs.html" %}
+{% load i18n static %}
+
+{% block page_title %}<title>{{ service.project_name }} - {% trans "Sign in" %} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style  type="text/css">
+        #navbar .search, #navbar .navbar-right {display: none}
+        label span {font-weight: normal}
+        #terms-warning {color: #999; font-size: 11px}
+        .login-with-ikwen {font-size: 1em; letter-spacing: .5px; padding: 6px 9px 8px}
+        .login-with-ikwen strong {color: #7ea6ca}
+        #items {padding: 15px}
+        #items .item {border: solid 1px #CCC; float: left; padding: 15px; width: 100%}
+        .keep-out {display: none}
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="form container">
+
+        <div id="items" class="form-wrapper">
+            <h3 style="text-align: center">
+                <div style="margin-bottom: .3em; text-align: center">
+                    {% if config.logo.name %}
+                        <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" alt="Logo {{ service.project_name }}"
+                             style="max-height: 80px"/>
+                    {% endif %}
+                </div>
+                {% trans "DoCash demo" %}
+            </h3>
+
+            <div id="item" class="item" method="get"> {% csrf_token %}
+                <img src="{% static 'admin/img/gis/move_vertex_on.png' %}">
+                <input type="hidden" name="amount" value="100" id="amount">
+                <input type="hidden" name="username" value="mbogning" id="username">
+                <input type="hidden" name="item_id" value="4124587ea458754a" id="item-id">
+                <input type="hidden" name="notification_url" value="http://cyberlink.cm/notif" id="notif">
+                <input type="hidden" name="return_url" value="http://cyberlink.cmreturn" id="r-url">
+                <input type="hidden" name="cancel_url" value="http://cyberlink.cm/cancel" id="cancel">
+                <div class="kako">
+                    <div class="name">My item</div>
+                    <div class="cost">100 XAF</div>
+                </div>
+                <button class="btn btn-primary btn-block btn-sm buy">
+                    {% blocktrans %}Buy <strong>now</strong>{% endblocktrans %}
+                </button>
+            </div>
+            <div id="confirmation" class="item keep-out">
+                <input type="hidden" class="activate">
+               <div><input type="radio" name="mean" id="payment-mean" value="MoMo" checked>MTN mobile money</div>
+               <div><input type="radio" name="mean" id="payment-mean" value="orange">Orange</div>
+
+                <a class="btn btn-primary btn-block btn-sm confirm" href="">
+                    Confirm your request
+                </a>
+            </div>
+        </div>
+
+        <div class="clear"></div>
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+            var url = ''
+            var token = 'no-token'
+            $('button.btn.buy').click(function (){
+                var amount = $('#amount').val(),
+                    username =  $('#username').val(),
+                    itemId =  $('#item-id').val(),
+                    returnUrl =  $('#r-url').val(),
+                    notiUrl =  $('#notif').val(),
+                    cancelUrl =  $('#cancel').val()
+
+                var endpoint = "{% url 'gateway:request_payment' %}";
+                var params = {format: 'json', username: username, amount: amount, item_id: itemId, notification_url:notiUrl, return_url:returnUrl, cancel_url:cancelUrl};
+
+
+                $.getJSON(endpoint, params, function(data) {
+                    if (data.error) {
+                        $('div#top-notice-ctnr span').html(data.error).addClass('failure');
+                        $('#top-notice-ctnr').fadeIn().delay(5000).fadeOut();
+                    } else {
+                        token = data.token
+                        $('#confirmation').fadeIn().removeClass('keep-out')
+                        $('#item').fadeOut().hide()
+                        $('#confirmation input.activate').click()
+                    }
+                    return false
+                });
+                return false
+            });
+            $('#confirmation input.activate').click(function () {
+                var url = "{% url 'gateway:set_checkout'  'token' %}".replace('token', token);
+                $('#confirmation a').attr('href', url)
+            })
+            $('#confirmation input[type=radio]').click(function () {
+                var rvalue = $('input[name=mean]:checked').val();
+                url = "{% url 'gateway:set_checkout'  'token' %}".replace('token', token)
+                if (rvalue=='orange') {
+                    url += '?mean=orange-money'
+                    $('#confirmation a').attr('href', url)
+                }else {
+                    url = "{% url 'gateway:set_checkout'  'token' %}".replace('token', token);
+                    $('#confirmation a').attr('href', url)
+                }
+            })
+
+
+        })()
+    </script>
+    {{ config.scripts|safe }}
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "core/base_bs.html" %}
+{% load i18n static %}
+
+{% block page_title %}<title>{{ service.project_name }} - {% trans "Confirm" %} </title>{% endblock %}
+{% block head_style %}
+    {{ block.super }}
+    <style  type="text/css">
+        #navbar .search, #navbar .navbar-right {display: none}
+        label span {font-weight: normal}
+        #terms-warning {color: #999; font-size: 11px}
+        .login-with-ikwen {font-size: 1em; letter-spacing: .5px; padding: 6px 9px 8px}
+        .login-with-ikwen strong {color: #7ea6ca}
+        #item {padding: 15px}
+        #item .item {border: solid 1px #CCC; float: left; padding: 15px; width: 100%}
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="content" class="form container">
+
+        <div id="item" class="form-wrapper">
+            <h3 style="text-align: center">
+                <div style="margin-bottom: .3em; text-align: center">
+                    {% if config.logo.name %}
+                        <img src="{{ settings.IKWEN_MEDIA_URL }}{{ config.logo.name }}" alt="Logo {{ service.project_name }}"
+                             style="max-height: 80px"/>
+                    {% endif %}
+                </div>
+                {% trans "DoCash demo" %}
+            </h3>
+
+            <form class="item" method="get"  action="{% url 'gateway:request_payment' %}"> {% csrf_token %}
+                <img src="{% static 'admin/img/gis/move_vertex_on.png' %}">
+                <input type="hidden" name="amount" value="5000">
+                <input type="hidden" name="item_id" value="4124587ea458754a">
+                <input type="hidden" name="notification_url" value="http://notif.com">
+                <input type="hidden" name="return_url" value="http://return.com">
+                <div class="kako">
+                    <div class="name">My item</div>
+                    <div class="cost">5000 XAF</div>
+                </div>
+                 <button type="submit" class="btn btn-primary btn-block btn-sm buy">
+                    {% blocktrans %}Buy <strong>now</strong>{% endblocktrans %}
+                </button>
+            </form>
+        </div>
+        <div class="clear"></div>
+    </div>
+{% endblock %}
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+        (function() {
+
+        })()
+    </script>
+    {{ config.scripts|safe }}
+{% endblock %}

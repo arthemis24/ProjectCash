@@ -1,0 +1,145 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+{% load i18n static %}
+    <head>
+        <title></title>
+        <link href="{% static 'gateway/css/grids2.css' %}" rel="stylesheet" type="text/css">
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script type="text/javascript">
+            $("#btnPrint").live("click", function () {
+                var divContents = $("#dvContainer").html();
+                var printWindow = window.open('', '', 'height=400,width=800');
+                printWindow.document.write('<html><head><title>Proforma</title>');
+                printWindow.document.write('</head><body >');
+                printWindow.document.write(divContents);
+                printWindow.document.write('</body></html>');
+                printWindow.document.close();
+                printWindow.print();
+            });
+        </script>
+    </head>
+    <body>
+        <form id="form1">
+            <input type="button" value="Print this invoice" id="btnPrint" style="font-size: 20px; position: absolute; right: 30px; padding: 20px 45px; top: 30px;"/>
+            <div id="dvContainer" style="font-family: 'Lato', 'Helvetica Neue', sans-serif">
+                <div id="header" style="border-bottom: solid 5px #DDD; float: left; width: 100%">
+                    <img class="logo" src="{% static 'gateway/unnamed_yUpaBk4.png' %}" width="100" style="float: left">
+                    <div id="company" style="border-left: solid 2px #999; float: left;margin-left: 20px; padding:7px 0 7px 20px">
+                        <div class="name" style="font-size: 25px">My company LTD</div>
+                        <div class="slogan" style="font-style:italic; margin-top: 7px">Always to be the best</div>
+                        <div class="phone" style="font-style:italic; margin-top: 7px">+325 658 2145 785</div>
+                    </div>
+                </div>
+                <div id="invoice-content" style="float: left; padding-top: 12px; width: 100%">
+                    <div class="date" style="float: right">Yaounde, 15 Novembre 2019</div>
+                    <div class="customer" style="float: left; clear:both;">
+                        <div class="label" style="float: left; font-weight: bold">Customer: </div>
+                        <div class="name" style="float: left; margin-left: 20px">MAKADAM Hubert</div>
+                    </div>
+                    <div class="page-h" style="float: left; clear: both; margin-top: 35px; text-align: center; width: 100%">
+                        <div style="">
+                            <span style="font-size: 30px; text-decoration: underline">Proforma No:</span>
+                            <span style="font-size: 20px">00001254875452146</span>
+                        </div>
+                    </div>
+                    <table class='grid' style="float: left; width: 100%">
+                        <thead style="font-size: 25px; padding: 7px 0;width: 100%">
+                            <tr>
+                                <td style="border-bottom: solid 1px #ccc; padding: 15px 6px">Produit</td>
+                                <td style="border-bottom: solid 1px #ccc; padding: 15px 6px">PU</td>
+                                <td style="border-bottom: solid 1px #ccc; padding: 15px 6px">Qty</td>
+                                <td style="border-bottom: solid 1px #ccc; padding: 15px 6px">Total</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">Tenis adiprenne 46/47</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">01</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">Tenis adiprenne 46/47</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">01</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">Tenis adiprenne 46/47</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">01</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">Tenis adiprenne 46/47</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">01</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">Tenis adiprenne 46/47</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">01</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">Tenis adiprenne 46/47</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">01</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">Tenis adiprenne 46/47</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">01</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                            </tr>
+                            <tr>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">Tenis adiprenne 46/47</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">01</td>
+                                <td style="border-bottom: 1px solid #dae3ff; color: #777; padding: 12px">55.000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="bottom" style="float: right; margin-top: -3px; padding: 20px; width: 70%">
+                        <div style="border-bottom: solid 1px #AAA;font-size: 20px;">
+                            <span style="font-size: 20px;">Total brute:</span>
+                            <div style="float: right">
+                                <span style="">532.00000</span>
+                                <span style="font-size: 12px; float: right; margin-left: 7px; margin-top: 7px">XAF</span>
+                            </div>
+                        </div>
+                        <div style="border-bottom: solid 1px #AAA;clear: both;font-size: 20px; margin-top: 20px">
+                            <span style="">Transport:</span>
+                            <div style="float: right">
+                                <span style="">532.00000</span>
+                                <span style="font-size: 12px; float: right; margin-left: 7px; margin-top: 7px">XAF</span>
+                            </div>
+                        </div>
+                        <div style="border-bottom: solid 1px #AAA;clear: both; font-size: 20px; margin-top: 20px">
+                            <span style="">TVA:</span>
+                            <div style="float: right">
+                                <span style="">532.00000</span>
+                                <span style="font-size: 12px; float: right; margin-left: 7px; margin-top: 7px">XAF</span>
+                            </div>
+                        </div>
+                        <div style="border-bottom: solid 1px #AAA;clear: both; font-size: 20px; margin-top: 20px">
+                            <span style="">Remise:</span>
+                            <div style="float: right">
+                                <span style="">532.00000</span>
+                                <span style="font-size: 12px; float: right; margin-left: 7px; margin-top: 7px">XAF</span>
+                            </div>
+                        </div>
+                        <div style="border-bottom: solid 3px #AAA;clear: both; margin-top: 40px">
+                            <span style="font-size: 30px;">Net A payer:</span>
+                            <div style="float: right">
+                                <span style="font-size: 30px">53.200 000</span>
+                                <span style="font-size: 12px; float: right; margin-left: 7px; margin-top: 15px">XAF</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </body>
+</html>
