@@ -34,10 +34,13 @@
                 <img src="{% static 'admin/img/gis/move_vertex_on.png' %}">
                 <input type="hidden" name="amount" value="100" id="amount">
                 <input type="hidden" name="username" value="mbogning" id="username">
-                <input type="hidden" name="item_id" value="4124587ea458754a" id="item-id">
+                <input type="hidden" name="merchant_name" value="mbogning" id="merchant_name">
+                <input type="hidden" name="item_id" value="4124587easlkjdfhvuias458754a" id="item_id">
+                <input type="hidden" name="user_id" value="4124587ea458754a" id="user_id">
                 <input type="hidden" name="notification_url" value="http://cyberlink.cm/notif" id="notif">
                 <input type="hidden" name="return_url" value="http://cyberlink.cmreturn" id="r-url">
                 <input type="hidden" name="cancel_url" value="http://cyberlink.cm/cancel" id="cancel">
+                <input type="hidden" name="currency" value="XAF" id="currency">
                 <div class="kako">
                     <div class="name">My item</div>
                     <div class="cost">100 XAF</div>
@@ -48,8 +51,10 @@
             </div>
             <div id="confirmation" class="item keep-out">
                 <input type="hidden" class="activate">
-               <div><input type="radio" name="mean" id="payment-mean" value="MoMo" checked>MTN mobile money</div>
-               <div><input type="radio" name="mean" id="payment-mean" value="orange">Orange</div>
+               <div><input type="radio" name="mean" id="payment-mean-mtn" value="MoMo" checked>MTN mobile money</div>
+               <div><input type="radio" name="mean" id="payment-mean-om" value="orange">Orange</div>
+               <div><input type="radio" name="mean" id="payment-mean-yup" value="yup">YUP</div>
+               <div><input type="radio" name="mean" id="payment-mean-uba" value="uba">UBA</div>
 
                 <a class="btn btn-primary btn-block btn-sm confirm" href="">
                     Confirm your request
@@ -69,13 +74,23 @@
             $('button.btn.buy').click(function (){
                 var amount = $('#amount').val(),
                     username =  $('#username').val(),
-                    itemId =  $('#item-id').val(),
+                    itemId =  $('#item_id').val(),
                     returnUrl =  $('#r-url').val(),
                     notiUrl =  $('#notif').val(),
-                    cancelUrl =  $('#cancel').val()
-
+                    cancelUrl =  $('#cancel').val(),
+                    decline_url =  $('#decline_url').val(),
+                    accept_url =  $('#accept_url').val(),
+                    user_id =  $('#user_id').val(),
+                    currency =  $('#currency').val(),
+                    purchase_ref =  $('#purchase_ref').val(),
+                    merchant_name =  $('#merchant_name').val(),
+                    merchant_id =  $('#merchant_id').val(),
+                    brand =  $('#brand').val(),
+                    description =  $('#description').val()
                 var endpoint = "{% url 'gateway:request_payment' %}";
-                var params = {format: 'json', username: username, amount: amount, item_id: itemId, notification_url:notiUrl, return_url:returnUrl, cancel_url:cancelUrl};
+                var params = {format: 'json', username: username, amount: amount, item_id: itemId, notification_url:notiUrl,
+                    return_url:returnUrl, cancel_url:cancelUrl, user_id:user_id, currency:currency,
+                     brand:brand, description:description, merchant_name:merchant_name};
 
 
                 $.getJSON(endpoint, params, function(data) {
@@ -102,7 +117,13 @@
                 if (rvalue=='orange') {
                     url += '?mean=orange-money'
                     $('#confirmation a').attr('href', url)
-                }else {
+                }else if (rvalue=='yup'){
+                    url += '?mean=yup'
+                    $('#confirmation a').attr('href', url)
+                }else if (rvalue=='uba'){
+                    url += '?mean=uba'
+                    $('#confirmation a').attr('href', url)
+                }else{
                     url = "{% url 'gateway:set_checkout'  'token' %}".replace('token', token);
                     $('#confirmation a').attr('href', url)
                 }

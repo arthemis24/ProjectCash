@@ -16,6 +16,7 @@ STATUS_CHOICES = (
 
 class PaymentRequest(Model):
     user_id = models.CharField(max_length=50, blank=True, null=True)
+    ik_username = models.CharField(max_length=50)
     amount = models.IntegerField(default=0)
     notification_url = models.URLField(blank=True, null=True)
     return_url = models.URLField(blank=True, null=True)

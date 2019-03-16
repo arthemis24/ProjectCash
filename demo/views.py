@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-from ikwen.core.views import BaseView
+
+from django.views.generic import TemplateView
 
 
-class DemoView(BaseView):
+class DemoView(TemplateView):
     template_name = 'demo/home.html'
 
 
-class Print(BaseView):
+class Print(TemplateView):
     template_name = 'demo/print.html'
