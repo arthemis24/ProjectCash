@@ -17,7 +17,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from requests.exceptions import SSLError, Timeout, RequestException
 
-
+from ikwen.core.utils import get_service_instance
 from ikwen.accesscontrol.models import Member
 from ikwen.billing.models import MoMoTransaction
 from ikwen.billing.orangemoney.views import ORANGE_MONEY, init_web_payment
@@ -54,10 +54,13 @@ def generate_transaction_token():
     key = generate_random_key(30)
     while True:
         try:
-            PaymentRequest.objects.get(token=key)
+            PaymentRequest.objects.using('docash').get(token=key)
             key = generate_random_key(30)
         except PaymentRequest.DoesNotExist:
-            break
+            try:
+                MoMoTransaction.objects.using('wallets').get(object_id=key)
+            except MoMoTransaction.DoesNotExist:
+                break
     return key
 
 
@@ -76,7 +79,7 @@ def request_payment(request, *args, **kwargs):
         return_url = form.cleaned_data.get('return_url')
         cancel_url = form.cleaned_data.get('cancel_url')
         user_id = form.cleaned_data.get('user_id')
-
+        service = get_service_instance()
         if not amount.isdigit():
             return HttpResponse("Transaction amount must be a number")
 
@@ -87,7 +90,7 @@ def request_payment(request, *args, **kwargs):
         else:
             payment_request = PaymentRequest(user_id=user_id, ik_username=username, amount=amount,
                                              notification_url=notification_url, return_url=return_url,
-                                             cancel_url=cancel_url, merchant_name=merchant_name)
+                                             cancel_url=cancel_url, merchant_name=merchant_name, service=service)
             payment_request.token = generate_transaction_token()
             payment_request.save(using='docash')
             # payment_request.save()
@@ -166,8 +169,11 @@ def set_momo_checkout(request, *args, **kwargs):
 
 def after_cashout(request, *args, **kwargs):
     tx = kwargs.get('transaction')
-    token = tx.object_id if tx else request.session['object_id']
-    # username = request.user.username
+
+    try:
+        token = request.session['object_id']
+    except KeyError:
+        token = tx.object_id
     try:
         payment_request = PaymentRequest.objects.using('docash').get(token=token)
     except PaymentRequest.DoesNotExist:
@@ -182,6 +188,7 @@ def after_cashout(request, *args, **kwargs):
             token = payment_request.token
             amount = payment_request.amount
             transaction.username = payment_request.user_id
+            transaction.service_id = service.id
             try:
                 payment_request.momo_transaction_id = transaction.id
                 payment_request.status = TERMINATED

@@ -13,6 +13,11 @@
         #items {padding: 15px}
         #items .item {border: solid 1px #CCC; float: left; padding: 15px; width: 100%}
         .keep-out {display: none}
+        .operator {border: solid 3px transparent;float: left; margin-left: 10px;padding: 2px;}
+        .operator.selected {border: solid 3px #20d24e}
+        .operator.mtn {margin-left: 0}
+        .operator img{width: 57px}
+        a.confirm {float:left; margin-top: 30px}
     </style>
 {% endblock %}
 
@@ -55,6 +60,12 @@
                <div><input type="radio" name="mean" id="payment-mean-om" value="orange">Orange</div>
                <div><input type="radio" name="mean" id="payment-mean-yup" value="yup">YUP</div>
                <div><input type="radio" name="mean" id="payment-mean-uba" value="uba">UBA</div>
+
+
+               <div class="operator mtn selected"><img src="{% static 'gateway/img/mtn.png' %}" ></div>
+               <div class="operator"><img src="{% static 'gateway/img/orange.png' %}"></div>
+               <div class="operator"><img src="{% static 'gateway/img/yup.png' %}"></div>
+               <div class="operator"><img src="{% static 'gateway/img/uba.png' %}" ></div>
 
                 <a class="btn btn-primary btn-block btn-sm confirm" href="">
                     Confirm your request
