@@ -70,6 +70,7 @@ def request_payment(request, *args, **kwargs):
     logger.debug("New query from %s: %s" % (request.META['REMOTE_ADDR'], request.META['REQUEST_URI']))
 
     form = PaymentRequestForm(request.GET)
+    response = None
     if form.is_valid():
         # TODO: Verifiy and send clear error messages. Use username instead of user_id
         username = request.GET.get('username')
