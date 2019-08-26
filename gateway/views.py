@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from requests.exceptions import SSLError, Timeout, RequestException
 
 from ikwen.core.utils import get_service_instance
+from ikwen.core.models import Service
 from ikwen.accesscontrol.models import Member
 from ikwen.billing.models import MoMoTransaction
 from ikwen.billing.orangemoney.views import ORANGE_MONEY, init_web_payment
@@ -54,7 +55,7 @@ def generate_transaction_token():
     key = generate_random_key(30)
     while True:
         try:
-            PaymentRequest.objects.using('docash').get(token=key)
+            PaymentRequest.objects.get(token=key)
             key = generate_random_key(30)
         except PaymentRequest.DoesNotExist:
             try:
@@ -79,20 +80,22 @@ def request_payment(request, *args, **kwargs):
         return_url = form.cleaned_data.get('return_url')
         cancel_url = form.cleaned_data.get('cancel_url')
         user_id = form.cleaned_data.get('user_id')
-        service = get_service_instance()
         if not amount.isdigit():
             return HttpResponse("Transaction amount must be a number")
 
         try:
-            user = Member.objects.using('umbrella').get(username=username)
-        except Member.DoesNotExist:
-            return HttpResponse("User does not exist")
+            user = Service.objects.using('umbrella').get(project_name_slug=username)
+        except Service.DoesNotExist:
+            try:
+                user = Member.objects.using('umbrella').get(username=username)
+            except Member.DoesNotExist:
+                return HttpResponse("Username '%s' does not exist" % username)
         else:
             payment_request = PaymentRequest(user_id=user_id, ik_username=username, amount=amount,
                                              notification_url=notification_url, return_url=return_url,
-                                             cancel_url=cancel_url, merchant_name=merchant_name, service=service)
+                                             cancel_url=cancel_url, merchant_name=merchant_name)
             payment_request.token = generate_transaction_token()
-            payment_request.save(using='docash')
+            payment_request.save()
             # payment_request.save()
             logger.debug("Token %s generated" % payment_request.token)
             response = HttpResponse(json.dumps(
@@ -118,7 +121,7 @@ class SetCheckout(MoMoSetCheckout):
         context = self.get_context_data(**kwargs)
         token = kwargs['token']
         # payment_request = get_object_or_404(PaymentRequest, token=token)
-        payment_request = PaymentRequest.objects.using('docash').get(token=token)
+        payment_request = PaymentRequest.objects.get(token=token)
         token_timeout = getattr(settings, 'TOKEN_TIMEOUT', 5) * 60
         token_expiry = payment_request.created_on + timedelta(seconds=token_timeout)
         now = datetime.datetime.now()
@@ -149,7 +152,7 @@ def set_momo_checkout(request, *args, **kwargs):
     token = kwargs['token']
 
     try:
-        payment_request = PaymentRequest.objects.using('docash').get(token=token, status=PENDING)
+        payment_request = PaymentRequest.objects.get(token=token, status=PENDING)
     except PaymentRequest.DoesNotExist:
         return HttpResponse("Error, PaymentRequest does not exist.")
     else:
@@ -175,7 +178,7 @@ def after_cashout(request, *args, **kwargs):
     except KeyError:
         token = tx.object_id
     try:
-        payment_request = PaymentRequest.objects.using('docash').get(token=token)
+        payment_request = PaymentRequest.objects.get(token=token)
     except PaymentRequest.DoesNotExist:
         logger.debug("The payment request %s was not found" % token, exc_info=True)
     else:
@@ -184,6 +187,11 @@ def after_cashout(request, *args, **kwargs):
         except MoMoTransaction.DoesNotExist:
             logger.error("MoMo Transaction with object_id: %s was not found" % token, exc_info=True)
         else:
+            try:
+                service = Service.objects.using('umbrella').get(project_name_slug=payment_request.ik_username)
+            except Service.DoesNotExist:
+                service = get_service_instance()
+
             phone = transaction.phone
             token = payment_request.token
             amount = payment_request.amount
@@ -192,25 +200,29 @@ def after_cashout(request, *args, **kwargs):
             try:
                 payment_request.momo_transaction_id = transaction.id
                 payment_request.status = TERMINATED
-                payment_request.save(using='docash')
+                payment_request.save()
                 logger.debug("Request of %dF from %s with token %s Terminated" % (amount, phone, token))
-                notification_final_url = payment_request.notification_url +'?status=' + \
-                                     payment_request.momo_transaction.status
-                logger.debug("Notification URL of the  %dF transaction is %s" % (amount, notification_final_url))
-                requests.get(notification_final_url)
+                params = {
+                    "status": transaction.status,
+                    "message": transaction.message,
+                    "operator_tx_id": transaction.processor_tx_id,
+                    "phone": transaction.phone
+                }
+
+                r = requests.get(payment_request.notification_url, params=params)
             except SSLError:
                 logger.error("SSL Error", exc_info=True)
-                transaction.message = traceback.format_exc()
+                payment_request.message = traceback.format_exc()
             except Timeout:
                 logger.error("Time out" , exc_info=True)
-                transaction.message = traceback.format_exc()
+                payment_request.message = traceback.format_exc()
             except RequestException:
                 logger.error("Request exception" , exc_info=True)
-                transaction.message = traceback.format_exc()
+                payment_request.message = traceback.format_exc()
             except:
                 logger.error("Server error" , exc_info=True)
-                transaction.message = traceback.format_exc()
+                payment_request.message = traceback.format_exc()
             else:
-                logger.debug("Notification for %dF from %s successfully sent using URL %s" % (amount, token, notification_final_url))
+                logger.debug("Notification for %dF from %s successfully sent using URL %s" % (amount, token, r.url))
             transaction.save()
         return HttpResponseRedirect(payment_request.return_url)

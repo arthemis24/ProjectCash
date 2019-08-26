@@ -26,7 +26,7 @@ class PaymentRequest(Model):
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=PENDING)
     momo_transaction_id = models.CharField(max_length=50, blank=True, null=True)
     merchant_name = models.CharField(max_length=64, blank=True, null=True)
-    service = models.ForeignKey(Service, blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
 
     def _get_momo_transaction(self):
         transaction = MoMoTransaction.objects.using('wallets').get(pk=self.momo_transaction_id)
