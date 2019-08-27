@@ -70,7 +70,6 @@ def request_payment(request, *args, **kwargs):
     logger.debug("New query from %s: %s" % (request.META['REMOTE_ADDR'], request.META['REQUEST_URI']))
 
     form = PaymentRequestForm(request.GET)
-    response = None
     if form.is_valid():
         # TODO: Verifiy and send clear error messages. Use username instead of user_id
         username = request.GET.get('username')
@@ -85,24 +84,23 @@ def request_payment(request, *args, **kwargs):
             return HttpResponse("Transaction amount must be a number")
 
         try:
-            user = Service.objects.using('umbrella').get(project_name_slug=username)
+            Service.objects.using('umbrella').get(project_name_slug=username)
         except Service.DoesNotExist:
             try:
-                user = Member.objects.using('umbrella').get(username=username)
+                 Member.objects.using('umbrella').get(username=username)
             except Member.DoesNotExist:
                 return HttpResponse("Username '%s' does not exist" % username)
-        else:
-            payment_request = PaymentRequest(user_id=user_id, ik_username=username, amount=amount,
-                                             notification_url=notification_url, return_url=return_url,
-                                             cancel_url=cancel_url, merchant_name=merchant_name)
-            payment_request.token = generate_transaction_token()
-            payment_request.save()
-            # payment_request.save()
-            logger.debug("Token %s generated" % payment_request.token)
-            response = HttpResponse(json.dumps(
-                {'success': True,
-                 'token': payment_request.token,
-                 }), 'content-type: text/json')
+        payment_request = PaymentRequest(user_id=user_id, ik_username=username, amount=amount,
+                                         notification_url=notification_url, return_url=return_url,
+                                         cancel_url=cancel_url, merchant_name=merchant_name)
+        payment_request.token = generate_transaction_token()
+        payment_request.save()
+        # payment_request.save()
+        logger.debug("Token %s generated" % payment_request.token)
+        response = HttpResponse(json.dumps(
+            {'success': True,
+             'token': payment_request.token,
+             }), 'content-type: text/json')
     else:
         error_list = []
         for error in form.errors:
