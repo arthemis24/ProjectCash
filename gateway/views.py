@@ -10,7 +10,7 @@ import requests
 from datetime import timedelta
 from django.conf import settings
 from django.http.response import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_by_path
 from django.views.decorators.cache import never_cache
@@ -95,21 +95,19 @@ def request_payment(request, *args, **kwargs):
                                          cancel_url=cancel_url, merchant_name=merchant_name)
         payment_request.token = generate_transaction_token()
         payment_request.save()
-        # payment_request.save()
         logger.debug("Token %s generated" % payment_request.token)
-        response = HttpResponse(json.dumps(
-            {'success': True,
-             'token': payment_request.token,
-             }), 'content-type: text/json')
+        response = HttpResponse(json.dumps({
+            'success': True,
+            'token': payment_request.token
+        }), 'content-type: text/json')
     else:
         error_list = []
         for error in form.errors:
             error_list.append(error)
-        response = HttpResponse(json.dumps(
-            {
-                'message': 'One or more GET parameters was not found in your request',
-                'errors': error_list,
-             }), 'content-type: text/json')
+        response = HttpResponse(json.dumps({
+            'message': 'One or more GET parameters was not found in your request',
+            'errors': error_list,
+        }), 'content-type: text/json')
     return response
 
 
@@ -119,8 +117,7 @@ class SetCheckout(MoMoSetCheckout):
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         token = kwargs['token']
-        # payment_request = get_object_or_404(PaymentRequest, token=token)
-        payment_request = PaymentRequest.objects.get(token=token)
+        payment_request = get_object_or_404(PaymentRequest, token=token)
         token_timeout = getattr(settings, 'TOKEN_TIMEOUT', 5) * 60
         token_expiry = payment_request.created_on + timedelta(seconds=token_timeout)
         now = datetime.datetime.now()
