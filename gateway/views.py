@@ -52,11 +52,10 @@ def generate_random_key(length):
 
 
 def generate_transaction_token():
-    key = generate_random_key(30)
     while True:
+        key = generate_random_key(30)
         try:
             PaymentRequest.objects.get(token=key)
-            key = generate_random_key(30)
         except PaymentRequest.DoesNotExist:
             try:
                 MoMoTransaction.objects.using('wallets').get(object_id=key)
@@ -67,7 +66,8 @@ def generate_transaction_token():
 
 @csrf_exempt
 def request_payment(request, *args, **kwargs):
-    logger.debug("New query from %s: %s" % (request.META['REMOTE_ADDR'], request.META['REQUEST_URI']))
+    service = get_service_instance()
+    logger.debug("%s - New query from %s: %s" % (service.project_name, request.META['REMOTE_ADDR'], request.META['REQUEST_URI']))
 
     form = PaymentRequestForm(request.GET)
     if form.is_valid():
@@ -95,7 +95,7 @@ def request_payment(request, *args, **kwargs):
                                          cancel_url=cancel_url, merchant_name=merchant_name)
         payment_request.token = generate_transaction_token()
         payment_request.save()
-        logger.debug("Token %s generated" % payment_request.token)
+        logger.debug("%s - Token %s generated" % (service.project_name, payment_request.token))
         response = HttpResponse(json.dumps({
             'success': True,
             'token': payment_request.token
@@ -168,7 +168,7 @@ def set_momo_checkout(request, *args, **kwargs):
 
 def after_cashout(request, *args, **kwargs):
     tx = kwargs.get('transaction')
-
+    svc = get_service_instance()
     try:
         token = request.session['object_id']
     except KeyError:
@@ -176,49 +176,51 @@ def after_cashout(request, *args, **kwargs):
     try:
         payment_request = PaymentRequest.objects.get(token=token)
     except PaymentRequest.DoesNotExist:
-        logger.debug("The payment request %s was not found" % token, exc_info=True)
+        logger.debug("%s - The payment request %s was not found" % (svc.project_name, token), exc_info=True)
     else:
         try:
             transaction = MoMoTransaction.objects.using('wallets').get(object_id=token)
         except MoMoTransaction.DoesNotExist:
-            logger.error("MoMo Transaction with object_id: %s was not found" % token, exc_info=True)
+            logger.error("%s - MoMo Transaction with object_id: %s was not found" % (svc.project_name, token), exc_info=True)
+            return
+        except MoMoTransaction.MultipleObjectsReturned:
+            transaction = MoMoTransaction.objects.using('wallets').filter(object_id=token)[0]
+            MoMoTransaction.objects.using('wallets').filter(object_id=token)[1:].delete()
+            logger.error("%s - Multiple MoMoTransation found with object_id %s was not found" % (svc.project_name, token), exc_info=True)
+        try:
+            service = Service.objects.using('umbrella').get(project_name_slug=payment_request.ik_username)
+        except Service.DoesNotExist:
+            service = get_service_instance()
+
+        phone = transaction.phone
+        token = payment_request.token
+        amount = payment_request.amount
+        transaction.username = payment_request.user_id
+        transaction.service_id = service.id
+        try:
+            payment_request.momo_transaction_id = transaction.id
+            payment_request.status = TERMINATED
+            payment_request.save()
+            logger.debug("%s - Request of %dF from %s with token %s Terminated" % (svc.project_name, amount, phone, token))
+            params = {
+                "status": transaction.status,
+                "message": transaction.message,
+                "operator_tx_id": transaction.processor_tx_id,
+                "phone": transaction.phone
+            }
+            r = requests.get(payment_request.notification_url, params=params)
+        except SSLError:
+            logger.error("SSL Error", exc_info=True)
+            payment_request.message = traceback.format_exc()
+        except Timeout:
+            logger.error("Time out", exc_info=True)
+            payment_request.message = traceback.format_exc()
+        except RequestException:
+            logger.error("Request exception", exc_info=True)
+            payment_request.message = traceback.format_exc()
+        except:
+            logger.error("Server error", exc_info=True)
+            payment_request.message = traceback.format_exc()
         else:
-            try:
-                service = Service.objects.using('umbrella').get(project_name_slug=payment_request.ik_username)
-            except Service.DoesNotExist:
-                service = get_service_instance()
-
-            phone = transaction.phone
-            token = payment_request.token
-            amount = payment_request.amount
-            transaction.username = payment_request.user_id
-            transaction.service_id = service.id
-            try:
-                payment_request.momo_transaction_id = transaction.id
-                payment_request.status = TERMINATED
-                payment_request.save()
-                logger.debug("Request of %dF from %s with token %s Terminated" % (amount, phone, token))
-                params = {
-                    "status": transaction.status,
-                    "message": transaction.message,
-                    "operator_tx_id": transaction.processor_tx_id,
-                    "phone": transaction.phone
-                }
-
-                r = requests.get(payment_request.notification_url, params=params)
-            except SSLError:
-                logger.error("SSL Error", exc_info=True)
-                payment_request.message = traceback.format_exc()
-            except Timeout:
-                logger.error("Time out" , exc_info=True)
-                payment_request.message = traceback.format_exc()
-            except RequestException:
-                logger.error("Request exception" , exc_info=True)
-                payment_request.message = traceback.format_exc()
-            except:
-                logger.error("Server error" , exc_info=True)
-                payment_request.message = traceback.format_exc()
-            else:
-                logger.debug("Notification for %dF from %s successfully sent using URL %s" % (amount, token, r.url))
-            transaction.save()
-        return HttpResponseRedirect(payment_request.return_url)
+            logger.debug("%s - Notification for %dF from %s successfully sent using URL %s" % (svc.project_name, amount, token, r.url))
+        transaction.save()

@@ -16,16 +16,16 @@ STATUS_CHOICES = (
 
 
 class PaymentRequest(Model):
-    user_id = models.CharField(max_length=50, blank=True, null=True)
-    ik_username = models.CharField(max_length=50)
+    user_id = models.CharField(max_length=50, blank=True, null=True, db_index=True)
+    ik_username = models.CharField(max_length=50, db_index=True)
     amount = models.IntegerField(default=0)
     notification_url = models.URLField(blank=True, null=True)
     return_url = models.URLField(blank=True, null=True)
     cancel_url = models.URLField(blank=True, null=True)
     token = models.CharField(max_length=64, unique=True, blank=True, null=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default=PENDING)
-    momo_transaction_id = models.CharField(max_length=50, blank=True, null=True)
-    merchant_name = models.CharField(max_length=64, blank=True, null=True)
+    momo_transaction_id = models.CharField(max_length=50, blank=True, null=True, db_index=True)
+    merchant_name = models.CharField(max_length=64, blank=True, null=True, db_index=True)
     message = models.TextField(blank=True, null=True)
 
     def _get_momo_transaction(self):
