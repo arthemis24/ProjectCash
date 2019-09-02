@@ -105,7 +105,7 @@ def request_payment(request, *args, **kwargs):
         for error in form.errors:
             error_list.append(error)
         response = HttpResponse(json.dumps({
-            'message': 'One or more GET parameters was not found in your request',
+            'message': 'One or more parameters not found in your request',
             'errors': error_list,
         }), 'content-type: text/json')
     return response
@@ -185,7 +185,7 @@ def after_cashout(request, *args, **kwargs):
             return
         except MoMoTransaction.MultipleObjectsReturned:
             transaction = MoMoTransaction.objects.using('wallets').filter(object_id=token)[0]
-            MoMoTransaction.objects.using('wallets').filter(object_id=token)[1:].delete()
+            MoMoTransaction.objects.using('wallets').exclude(pk=transaction.id).filter(object_id=token).delete()
             logger.error("%s - Multiple MoMoTransation found with object_id %s was not found" % (svc.project_name, token), exc_info=True)
         try:
             service = Service.objects.using('umbrella').get(project_name_slug=payment_request.ik_username)
