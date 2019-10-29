@@ -1,0 +1,2 @@
+1 - currencies context_processor:
+    Catch exception ValueError and process

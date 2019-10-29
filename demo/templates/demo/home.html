@@ -23,7 +23,7 @@
 
 {% block content %}
     <div id="content" class="form container">
-
+        {% for msg in messages %}<p class="msg-tag {{ msg.tags }}" style="font-size: 1em; padding: 9px">{{ msg }}</p>{% endfor %}
         <div id="items" class="form-wrapper">
             <h3 style="text-align: center">
                 <div style="margin-bottom: .3em; text-align: center">

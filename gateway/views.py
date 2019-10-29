@@ -126,7 +126,7 @@ class SetCheckout(MoMoSetCheckout):
                 # Token is expired
                 return HttpResponse(json.dumps({'error': "expired token; restart your request"}), 'content-type: text/json')
         payment_mean = context['payment_mean']
-        signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(16)])
+        signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)])
         request.session['signature'] = signature
         path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
         momo_before_checkout = import_by_path(path)
@@ -185,18 +185,12 @@ def after_cashout(request, *args, **kwargs):
             return
         except MoMoTransaction.MultipleObjectsReturned:
             transaction = MoMoTransaction.objects.using('wallets').filter(object_id=token)[0]
-            MoMoTransaction.objects.using('wallets').exclude(pk=transaction.id).filter(object_id=token).delete()
             logger.error("%s - Multiple MoMoTransation found with object_id %s was not found" % (svc.project_name, token), exc_info=True)
-        try:
-            service = Service.objects.using('umbrella').get(project_name_slug=payment_request.ik_username)
-        except Service.DoesNotExist:
-            service = get_service_instance()
 
         phone = transaction.phone
         token = payment_request.token
         amount = payment_request.amount
         transaction.username = payment_request.user_id
-        transaction.service_id = service.id
         try:
             payment_request.momo_transaction_id = transaction.id
             payment_request.status = TERMINATED
