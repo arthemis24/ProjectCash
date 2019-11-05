@@ -81,7 +81,13 @@ def request_payment(request, *args, **kwargs):
         cancel_url = form.cleaned_data.get('cancel_url')
         user_id = form.cleaned_data.get('user_id')
         if not amount.isdigit():
-            return HttpResponse("Transaction amount must be a number")
+            response = {'error': "Transaction amount must be a number"}
+            return HttpResponse(json.dumps(response))
+
+        max_amount = getattr(settings, 'MAX_AMOUNT', 500000)
+        if int(amount) > max_amount:
+            response = {'error': "Amount too big. Max allowed is %d" % max_amount}
+            return HttpResponse(json.dumps(response))
 
         try:
             Service.objects.using('umbrella').get(project_name_slug=username)
