@@ -197,6 +197,13 @@ def after_cashout(request, *args, **kwargs):
         token = payment_request.token
         amount = payment_request.amount
         transaction.username = payment_request.user_id
+
+        try:
+            service = Service.objects.using('umbrella').get(project_name_slug=payment_request.ik_username)
+            transaction.service_id = service.id
+        except Service.DoesNotExist:
+            pass
+
         try:
             payment_request.momo_transaction_id = transaction.id
             payment_request.status = TERMINATED
