@@ -9,7 +9,7 @@ import traceback
 import requests
 from datetime import timedelta
 from django.conf import settings
-from django.http.response import HttpResponseRedirect, HttpResponse
+from django.http.response import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.module_loading import import_by_path
@@ -132,6 +132,8 @@ class SetCheckout(MoMoSetCheckout):
                 # Token is expired
                 return HttpResponse(json.dumps({'error': "expired token; restart your request"}), 'content-type: text/json')
         payment_mean = context['payment_mean']
+        payment_request.mean = payment_mean.slug
+        payment_request.save()
         signature = ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)])
         request.session['signature'] = signature
         path = getattr(settings, 'MOMO_BEFORE_CASH_OUT')
@@ -198,12 +200,7 @@ def after_cashout(request, *args, **kwargs):
         amount = payment_request.amount
         transaction.username = payment_request.user_id
 
-        try:
-            service = Service.objects.using('umbrella').get(project_name_slug=payment_request.ik_username)
-            transaction.service_id = service.id
-        except Service.DoesNotExist:
-            pass
-
+        r = None
         try:
             payment_request.momo_transaction_id = transaction.id
             payment_request.status = TERMINATED
@@ -218,16 +215,22 @@ def after_cashout(request, *args, **kwargs):
             r = requests.get(payment_request.notification_url, params=params)
         except SSLError:
             logger.error("SSL Error", exc_info=True)
+            payment_request.notification_resp_code = r.status_code if r else None
             payment_request.message = traceback.format_exc()
         except Timeout:
             logger.error("Time out", exc_info=True)
+            payment_request.notification_resp_code = r.status_code if r else None
             payment_request.message = traceback.format_exc()
         except RequestException:
             logger.error("Request exception", exc_info=True)
+            payment_request.notification_resp_code = r.status_code if r else None
             payment_request.message = traceback.format_exc()
         except:
             logger.error("Server error", exc_info=True)
+            payment_request.notification_resp_code = r.status_code if r else None
             payment_request.message = traceback.format_exc()
         else:
             logger.debug("%s - Notification for %dF from %s successfully sent using URL %s" % (svc.project_name, amount, token, r.url))
+
+        payment_request.save()
         transaction.save()
