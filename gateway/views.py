@@ -9,6 +9,7 @@ import traceback
 import requests
 from datetime import timedelta
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.http.response import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils.decorators import method_decorator
@@ -95,7 +96,8 @@ def request_payment(request, *args, **kwargs):
             try:
                  Member.objects.using('umbrella').get(username=username)
             except Member.DoesNotExist:
-                return HttpResponse("Username '%s' does not exist" % username)
+                response = {'error': "Username '%s' does not exist" % username}
+                return HttpResponse(json.dumps(response))
         payment_request = PaymentRequest(user_id=user_id, ik_username=username, amount=amount,
                                          notification_url=notification_url, return_url=return_url,
                                          cancel_url=cancel_url, merchant_name=merchant_name)
@@ -165,7 +167,7 @@ def set_momo_checkout(request, *args, **kwargs):
         request.session['amount'] = payment_request.amount
 
         request.session['merchant_name'] = payment_request.merchant_name
-        request.session['notif_url'] = payment_request.notification_url
+        request.session['notif_url'] = get_service_instance().url + reverse('do_momo_checkout')
         request.session['cancel_url'] = payment_request.cancel_url
         request.session['return_url'] = payment_request.return_url
 
@@ -234,3 +236,8 @@ def after_cashout(request, *args, **kwargs):
 
         payment_request.save()
         transaction.save()
+
+
+def do_momo_checkout(request, *args, **kwargs):
+    url = get_service_instance().url + reverse('gateway:do_momo_checkout', args=('1000', ))
+    return HttpResponse("Not yet implemented" + url)
