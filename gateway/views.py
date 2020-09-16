@@ -167,7 +167,7 @@ def set_momo_checkout(request, *args, **kwargs):
         request.session['amount'] = payment_request.amount
 
         request.session['merchant_name'] = payment_request.merchant_name
-        request.session['notif_url'] = get_service_instance().url + reverse('do_momo_checkout')
+        request.session['notif_url'] = get_service_instance().url + reverse('gateway:do_momo_checkout')
         request.session['cancel_url'] = payment_request.cancel_url
         request.session['return_url'] = payment_request.return_url
 
@@ -201,6 +201,10 @@ def after_cashout(request, *args, **kwargs):
         token = payment_request.token
         amount = payment_request.amount
         transaction.username = payment_request.user_id
+        try:
+            transaction.service_id = Service.objects.using('umbrella').get(project_name_slug=payment_request.ik_username).id
+        except:
+            pass
 
         r = None
         try:
