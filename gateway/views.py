@@ -81,13 +81,15 @@ def request_payment(request, *args, **kwargs):
         return_url = form.cleaned_data.get('return_url')
         cancel_url = form.cleaned_data.get('cancel_url')
         user_id = form.cleaned_data.get('user_id')
-        if not amount.isdigit():
-            response = {'error': "Transaction amount must be a number"}
+        try:
+            amount = int(float(amount))
+        except ValueError:
+            response = {'errors': "Transaction amount must be a number, %s found." % amount}
             return HttpResponse(json.dumps(response))
 
         max_amount = getattr(settings, 'MAX_AMOUNT', 500000)
-        if int(amount) > max_amount:
-            response = {'error': "Amount too big. Max allowed is %d" % max_amount}
+        if amount > max_amount:
+            response = {'errors': "Amount too big. Max allowed is %d, %s found" % (max_amount, amount)}
             return HttpResponse(json.dumps(response))
 
         try:
@@ -96,7 +98,7 @@ def request_payment(request, *args, **kwargs):
             try:
                  Member.objects.using('umbrella').get(username=username)
             except Member.DoesNotExist:
-                response = {'error': "Username '%s' does not exist" % username}
+                response = {'errors': "Username '%s' does not exist" % username}
                 return HttpResponse(json.dumps(response))
         payment_request = PaymentRequest(user_id=user_id, ik_username=username, amount=amount,
                                          notification_url=notification_url, return_url=return_url,
