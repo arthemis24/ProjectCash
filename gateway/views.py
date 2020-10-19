@@ -72,7 +72,7 @@ def request_payment(request, *args, **kwargs):
 
     form = PaymentRequestForm(request.GET)
     if form.is_valid():
-        # TODO: Verifiy and send clear error messages. Use username instead of user_id
+        # TODO: Verifiy and send clear error messages. Use username instead of payer_id
         username = request.GET.get('username')
         username = username.lower()
         amount = form.cleaned_data.get('amount')
@@ -80,7 +80,7 @@ def request_payment(request, *args, **kwargs):
         notification_url = form.cleaned_data.get('notification_url')
         return_url = form.cleaned_data.get('return_url')
         cancel_url = form.cleaned_data.get('cancel_url')
-        user_id = form.cleaned_data.get('user_id')
+        payer_id = form.cleaned_data.get('payer_id')
         try:
             amount = int(float(amount))
         except ValueError:
@@ -100,7 +100,7 @@ def request_payment(request, *args, **kwargs):
             except Member.DoesNotExist:
                 response = {'errors': "Username '%s' does not exist" % username}
                 return HttpResponse(json.dumps(response))
-        payment_request = PaymentRequest(user_id=user_id, ik_username=username, amount=amount,
+        payment_request = PaymentRequest(username=username, payer_id=payer_id, amount=amount,
                                          notification_url=notification_url, return_url=return_url,
                                          cancel_url=cancel_url, merchant_name=merchant_name)
         payment_request.token = generate_transaction_token()
@@ -202,9 +202,9 @@ def after_cashout(request, *args, **kwargs):
         phone = transaction.phone
         token = payment_request.token
         amount = payment_request.amount
-        transaction.username = payment_request.user_id
+        transaction.username = payment_request.payer_id
         try:
-            transaction.service_id = Service.objects.using('umbrella').get(project_name_slug=payment_request.ik_username).id
+            transaction.service_id = Service.objects.using('umbrella').get(project_name_slug=payment_request.username).id
         except:
             pass
 

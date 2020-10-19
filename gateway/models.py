@@ -16,8 +16,8 @@ STATUS_CHOICES = (
 
 
 class PaymentRequest(Model):
-    user_id = models.CharField(max_length=50, blank=True, null=True, db_index=True)
-    ik_username = models.CharField(max_length=50, db_index=True)
+    payer_id = models.CharField(max_length=50, blank=True, null=True, db_index=True)
+    username = models.CharField(max_length=50, db_index=True)
     amount = models.IntegerField(default=0)
     mean = models.CharField(blank=True, null=True)
     notification_url = models.URLField(blank=True, null=True)
@@ -36,6 +36,6 @@ class PaymentRequest(Model):
     momo_transaction = property(_get_momo_transaction)
 
     def _get_user(self):
-        user = Member.objects.using('umbrella').get(pk=self.user_id)
+        user = Member.objects.using('umbrella').get(pk=self.payer_id)
         return user
     user = property(_get_user)

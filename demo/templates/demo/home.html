@@ -38,10 +38,10 @@
             <div id="item" class="item" method="get"> {% csrf_token %}
                 <img src="{% static 'admin/img/gis/move_vertex_on.png' %}">
                 <input type="hidden" name="amount" value="100" id="amount">
-                <input type="hidden" name="username" value="ikwen" id="username">
+                <input type="hidden" name="username" value="{{ service.project_name_slug }}" id="username">
                 <input type="hidden" name="merchant_name" value="ikwen" id="merchant_name">
                 <input type="hidden" name="item_id" value="4124587easlkjdfhvuias458754a" id="item_id">
-                <input type="hidden" name="user_id" value="arch" id="user_id">
+                <input type="hidden" name="payer_id" value="arch" id="payer_id">
                 <input type="hidden" name="notification_url" value="http://cyberlink.cm/notif" id="notif">
                 <input type="hidden" name="return_url" value="http://cyberlink.cm/return" id="r-url">
                 <input type="hidden" name="cancel_url" value="http://cyberlink.cm/cancel" id="cancel">
@@ -91,7 +91,7 @@
                     cancelUrl =  $('#cancel').val(),
                     decline_url =  $('#decline_url').val(),
                     accept_url =  $('#accept_url').val(),
-                    user_id =  $('#user_id').val(),
+                    payer_id =  $('#payer_id').val(),
                     currency =  $('#currency').val(),
                     purchase_ref =  $('#purchase_ref').val(),
                     merchant_name =  $('#merchant_name').val(),
@@ -100,7 +100,7 @@
                     description =  $('#description').val()
                 var endpoint = "{% url 'gateway:request_payment' %}";
                 var params = {format: 'json', username: username, amount: amount, item_id: itemId, notification_url:notiUrl,
-                    return_url:returnUrl, cancel_url:cancelUrl, user_id:user_id, currency:currency,
+                    return_url:returnUrl, cancel_url:cancelUrl, payer_id:payer_id, currency:currency,
                      brand:brand, description:description, merchant_name:merchant_name};
 
 
